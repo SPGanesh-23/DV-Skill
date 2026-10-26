@@ -142,6 +142,7 @@ This answers a simple question: *do students whose parents have higher education
 
 - Tabular previews and summary statistics for the dataset.
 - A bar chart showing the overall average exam score for each parental education level.
+<img width="1112" height="710" alt="image" src="https://github.com/user-attachments/assets/505434b2-60a6-422b-9253-ebb7d030b213" />
 
 ---
 
