@@ -104,6 +104,9 @@ Creates `price_per_sqft_living` and `price_per_sqft_lot`, which allow fair compa
 
 ### 6. Box Plots for Valuation Outliers
 Draws two horizontal box plots (one per metric) to visualize the spread and extreme values.
+<img width="721" height="525" alt="image" src="https://github.com/user-attachments/assets/946b03b8-3c54-48bb-8298-5b3a39ad67a1" />
+
+<img width="721" height="525" alt="image" src="https://github.com/user-attachments/assets/c1f0e8b3-e41b-4e87-a339-712fd6989d2b" />
 
 ### 7. Statistical Outlier Detection Using IQR
 Computes Q1, Q3, IQR, and the lower/upper fences for each metric, then counts the rows that fall outside them.
