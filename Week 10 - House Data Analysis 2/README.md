@@ -1,164 +1,210 @@
-# Week 10 – King County House Price Analysis
+# Week 10 – King County House Prices: Exploratory Data Analysis (EDA)
 
-An exploratory data analysis (EDA) of residential property sales, written as a real-estate investment study. The notebook examines which property characteristics are associated with sale price, quantifies the waterfront premium, and locates geographic clusters of high-value sales.
-
-> **Note:** all findings are *observed associations*, not causal effects. See [Limitations](#limitations).
+A Jupyter/Google Colab notebook that performs an exploratory analysis of a cleaned **King County (Washington) house sales** dataset. It examines how living area, grade, condition, waterfront access, renovation, age, and location relate to **sale price**, and summarizes the results as a real-estate investment report.
 
 ---
 
 ## Table of Contents
 
-1. [Project Overview](#project-overview)
+1. [Objective](#objective)
 2. [Dataset](#dataset)
-3. [Notebook Structure](#notebook-structure)
-4. [Key Findings](#key-findings)
+3. [Tech Stack](#tech-stack)
+4. [Project Structure](#project-structure)
 5. [Setup and Usage](#setup-and-usage)
-6. [Methodology Notes](#methodology-notes)
-7. [Limitations](#limitations)
-8. [Possible Next Steps](#possible-next-steps)
+6. [Notebook Walkthrough](#notebook-walkthrough)
+7. [Output](#output)
+8. [Key Findings](#key-findings)
+9. [Limitations](#limitations)
+10. [Possible Extensions](#possible-extensions)
 
 ---
 
-## Project Overview
+## Objective
 
-**Goal:** identify the factors that influence house prices and summarize them in a way useful for property valuation and investment decisions.
-
-**Questions the notebook answers:**
-
-- How strongly does living area relate to price, and is the relationship linear?
-- How do property grade and condition affect price and price variability?
-- How large is the waterfront price premium?
-- Where are high-value properties concentrated geographically?
-- Which combination of variables best describes market valuation?
+- Load and understand a cleaned house sales dataset.
+- Measure how strongly living area relates to price and flag unusual properties.
+- Compare prices across property **grade** and **condition**.
+- Quantify the **waterfront price premium**.
+- Identify **geographic clusters** of high-value properties.
+- Combine several variables (age, renovation, bedrooms, bathrooms, price per sq ft) into an overall valuation view.
 
 ---
 
 ## Dataset
 
-| Item | Detail |
-|---|---|
-| File | `cleaned_kc_house_data.csv` (not included in this repository) |
-| Records | 21,597 sales |
-| Columns | 29 |
-| Location | King County, Washington (latitude ≈ 47.x, longitude ≈ −122.x) |
-| Sale period | 2014–2015 |
+**File:** `cleaned_kc_house_data.csv`
 
-**Original columns** include `price`, `bedrooms`, `bathrooms`, `sqft_living`, `sqft_lot`, `floors`, `waterfront`, `view`, `condition`, `grade`, `yr_built`, `yr_renovated`, `zipcode`, `lat`, and `long`.
+The notebook reads the file from Google Drive (`/content/drive/MyDrive/Colab Notebooks/`). The dataset is not included in this repository, so place your own copy at the path above or update the path in the notebook.
 
-**Pre-engineered columns** already present in the cleaned file: `sale_year`, `sale_month`, `sale_quarter`, `property_age`, `is_renovated`, `years_since_renovation`, `price_per_sqft_living`, `price_per_sqft_lot`.
+- **Records:** 21,597 sales
+- **Columns:** 29
+- **Missing values:** none in the inspected columns
 
-**Columns created inside the notebook:** `high_value` (top 10% of prices), `lat_cluster`, and `long_cluster` (grid cells for geographic grouping).
-
-The dataset has no missing values (all 21,597 rows are non-null in every column inspected).
-
----
-
-## Notebook Structure
-
-| Section | Topic | What it does |
+| Group | Columns | Description |
 |---|---|---|
-| 1 | Basic Data Inspection | `head`, `tail`, `info`, `describe`, `shape`, `columns` |
-| 2 | Living Area vs. Price | Correlation, regression plots, IQR-based detection of unusual price-per-sq-ft properties |
-| 3 | Grade and Condition | Box plots, median and variation tables, per-grade outliers, grade × condition heatmap |
-| 4 | Waterfront Premium | Group summary, box plot, mean and median premium calculation |
-| 5 | Geographic Analysis | Price-colored lat/long scatter, top-10% high-value flag and profile |
-| 6 | Multivariable Valuation | Age, renovation, bedrooms, bathrooms, price per sq ft |
-| 7 | Additional Visualizations | Price per sq ft by grade, area vs. price per sq ft, correlation matrix |
-| 8 | Geographic Clusters | 0.02° grid clusters ranked by median price |
-| 9 | Investment Summary | Printed report that pulls the main metrics together |
-| 10 | Insights and Conclusion | Ranked correlations with price and final conclusions |
+| Price | `price`, `price_per_sqft_living`, `price_per_sqft_lot` | Sale price and unit prices |
+| Size | `sqft_living`, `sqft_lot`, `sqft_above`, `sqft_basement`, `bedrooms`, `bathrooms`, `floors` | Property size and layout |
+| Quality | `grade`, `condition`, `view`, `waterfront` | Quality and desirability ratings |
+| Age | `yr_built`, `yr_renovated`, `property_age`, `is_renovated`, `years_since_renovation` | Age and renovation history |
+| Location | `zipcode`, `lat`, `long` | Geographic position |
+| Time | `date`, `sale_year`, `sale_month`, `sale_quarter` | Sale timing |
+
+**Columns created in the notebook:** `high_value` (top 10% of prices), `lat_cluster`, `long_cluster` (0.02° grid cells).
 
 ---
 
-## Key Findings
+## Tech Stack
 
-### 1. Living area is the strongest numeric predictor
-- Correlation between `sqft_living` and `price`: **0.70**.
-- Ranked correlations with price: `sqft_living` (0.70) > `grade` (0.67) > `price_per_sqft_living` (0.56) > `bathrooms` (0.53) > `bedrooms` (0.31) > `lat` (0.31) > `waterfront` (0.27).
+- **Python 3**
+- [pandas](https://pandas.pydata.org/) – loading and aggregating tabular data
+- [NumPy](https://numpy.org/) – numerical operations
+- [Matplotlib](https://matplotlib.org/) – plotting
+- [seaborn](https://seaborn.pydata.org/) – box plots, regression plots, and heatmaps
+- Google Colab (notebook environment, with Google Drive for file access)
 
-### 2. Grade has a strong, consistent effect; condition does not
-- Median price rises steadily with grade, from **$200,000 (grade 4)** to **$2,983,000 (grade 13)**.
-- Price *spread* also widens sharply at higher grades, so top-grade homes are both more expensive and less predictable.
-- Condition is weaker and non-monotonic: the median for condition 3 ($450,250) is slightly above condition 4 ($440,000), and condition 5 is highest ($526,000). Condition matters most when combined with grade (see the heatmap in Section 3).
+---
 
-### 3. Waterfront carries a large premium
+## Project Structure
 
-| | Count | Mean price | Median price |
-|---|---|---|---|
-| Non-waterfront | 21,434 | $531,673 | $450,000 |
-| Waterfront | 163 | $1,661,876 | $1,400,000 |
-
-Observed premium: **≈ 212% (mean)** and **≈ 211% (median)**. Waterfront homes are also larger (avg. 3,174 vs. 2,072 sq ft) and higher grade (8.8 vs. 7.6), so part of the premium reflects size and quality, not the waterfront alone.
-
-### 4. Property age matters little; renovation matters more
-- Age vs. price correlation is only **−0.054**.
-- Renovated homes average **$760,379** vs. **$530,473** for non-renovated homes.
-
-### 5. High-value properties cluster geographically
-- The top-10% threshold is **$887,000** (2,161 properties).
-- High-value homes have a median price of $1,156,000, average 3,566 sq ft, and average grade 9.5. Their waterfront share is about 5.3% vs. 0.25% for other homes.
-- The highest-ranked grid cell is centered near **lat 47.62, long −122.24** (median price ≈ $2.1M).
-
-### 6. Outliers
-- **705** properties are unusual by price per sq ft (IQR rule, whole dataset).
-- **678** are price outliers *within their grade* (IQR rule per grade).
+```
+.
+├── Week_10.ipynb                 # Main analysis notebook
+├── cleaned_kc_house_data.csv     # Input dataset (not included, add your own)
+└── README.md                     # Project documentation
+```
 
 ---
 
 ## Setup and Usage
 
-### Requirements
+### Option 1: Google Colab (recommended)
 
-- Python 3.8+
-- `pandas`, `numpy`, `matplotlib`, `seaborn`
-- Jupyter Notebook, JupyterLab, or Google Colab
+1. Upload `Week_10.ipynb` to Google Colab.
+2. Upload `cleaned_kc_house_data.csv` to `MyDrive/Colab Notebooks/` in your Google Drive.
+3. Mount Google Drive **before** loading the CSV:
+   ```python
+   from google.colab import drive
+   drive.mount('/content/drive')
+   ```
+   In the notebook file the load cell comes before the mount cell, so run the mount cell first.
+4. Run all cells (**Runtime → Run all**).
 
-```bash
-pip install pandas numpy matplotlib seaborn jupyter
-```
+### Option 2: Run locally
 
-### Running in Google Colab (as written)
-
-1. Upload `cleaned_kc_house_data.csv` to `MyDrive/Colab Notebooks/`.
-2. Run the Drive-mount cell (`drive.mount('/content/drive')`) **before** the cell that loads the CSV. In the notebook file the load cell appears first, so run them in the order mount → load.
-3. Run the remaining cells top to bottom.
-
-### Running locally
-
-1. Remove the `google.colab` import and the `drive.mount` cell.
-2. Change the data path to your local file:
-
+1. Install the dependencies:
+   ```bash
+   pip install pandas numpy matplotlib seaborn jupyter
+   ```
+2. Remove the `google.colab` import and the `drive.mount` cell, then change the file path:
    ```python
    df = pd.read_csv("cleaned_kc_house_data.csv")
    ```
-3. Run all cells in order. Later sections depend on variables from earlier ones (for example, `mean_premium` from Section 4 and `high_value` from Section 5 are used in Sections 8–9).
+3. Launch Jupyter and open the notebook:
+   ```bash
+   jupyter notebook Week_10.ipynb
+   ```
+
+Later sections reuse variables from earlier ones (for example `mean_premium` and `high_value`), so run the cells in order.
 
 ---
 
-## Methodology Notes
+## Notebook Walkthrough
 
-- **Outlier detection:** the interquartile range (IQR) rule flags values below Q1 − 1.5 × IQR or above Q3 + 1.5 × IQR.
-- **Median vs. mean:** medians are used alongside means because house prices are right-skewed, and a few very expensive homes inflate averages.
-- **High-value definition:** a property is "high value" if its price is at or above the 90th percentile.
-- **Geographic clusters:** coordinates are snapped to a 0.02° grid (`GRID_SIZE`). Only cells with at least 10 sales are ranked, to avoid conclusions from tiny samples. This is an approximation, not a statistical clustering algorithm such as K-Means or DBSCAN.
-- **Map color cap:** the price color scale is clipped at the 99th percentile so a handful of extreme sales do not wash out the map.
+### 1. Basic data inspection
+`head()`, `tail()`, `info()`, `describe()`, `shape`, and `columns` to understand the size and structure of the data.
+
+### 2. Living area and house price
+- Computes the correlation between `sqft_living` and `price`.
+- Draws regression plots to check whether the relationship is linear.
+- Flags **unusual properties** using the IQR rule on `price_per_sqft_living` (values outside Q1 − 1.5 × IQR and Q3 + 1.5 × IQR) and highlights them on a scatter plot.
+
+### 3. Property grade and condition
+- Box plots of price by grade and by condition.
+- Median and variation tables (count, mean, median, std, min, max).
+- Finds outliers **within each grade**.
+- Builds a grade × condition pivot table of median prices and shows it as a heatmap.
+
+### 4. Waterfront price premium
+- Compares waterfront and non-waterfront prices (count, mean, median, std).
+- Calculates the mean and median premium as a percentage.
+- Compares average size, grade, and condition between the two groups to show what else differs.
+
+### 5. Geographic house price analysis
+- Scatter plot of latitude vs. longitude colored by price (clipped at the 99th percentile).
+- Flags the **top 10%** of prices as `high_value` and plots them against the rest.
+- Profiles high-value vs. other properties.
+
+### 6. Multivariable property valuation
+- Ensures `property_age`, `is_renovated`, and the price-per-sq-ft columns exist.
+- Plots price per sq ft by grade and condition, property age vs. price, renovated vs. non-renovated prices, and median price by bedrooms and bathrooms.
+
+### 7. Additional visualizations
+Average price per sq ft by grade, living area vs. price per sq ft, and a correlation matrix of the key variables.
+
+### 8. Geographic cluster identification
+Snaps coordinates to a 0.02° grid, keeps cells with at least 10 sales, ranks them by median price, and plots the top clusters.
+
+### 9. Real-estate investment summary
+Prints a report that collects the main metrics: correlations, best grade and condition, waterfront premium, age effect, top cluster, and limitations.
+
+### 10. Insights and conclusion
+Ranks all numeric variables by correlation with price and prints the final conclusions.
+
+---
+
+## Output
+
+- Tabular previews, summary statistics, and grouped tables.
+- A printed investment summary report.
+- The key charts below.
+
+**1. Living Area vs. House Price**
+
+<img width="942" height="607" alt="image" src="https://github.com/user-attachments/assets/0938e9c4-91d8-4113-b518-881862f1a064" />
+
+**2. Median Price by Property Grade**
+
+<img width="940" height="611" alt="image" src="https://github.com/user-attachments/assets/a034e4ac-68f1-4939-b12c-4f269a80f827" />
+
+**3. Waterfront vs. Non-Waterfront Prices**
+
+<img width="752" height="605" alt="image" src="https://github.com/user-attachments/assets/e1033b7c-12dc-42d7-a946-f1e3852e1b2c" />
+
+**4. Clusters of High-Value Properties**
+
+<img width="926" height="693" alt="image" src="https://github.com/user-attachments/assets/58400135-c87c-49a2-a1a7-ade09588c2c1" />
+
+**5. Correlation Matrix**
+
+<img width="1040" height="887" alt="image" src="https://github.com/user-attachments/assets/3f3b51f6-dd66-4adc-8365-0ac6a1197f25" />
+
+---
+
+## Key Findings
+
+- **Living area** has the strongest numeric link to price (correlation **0.70**), followed by grade (0.67), price per sq ft (0.56), and bathrooms (0.53).
+- **Grade** has a strong effect: median price rises from **$200,000 (grade 4)** to **$2,983,000 (grade 13)**, and the spread widens at higher grades.
+- **Condition** is weaker and not strictly increasing (condition 3 has a slightly higher median than condition 4).
+- **Waterfront** homes sell at a premium of about **212%** (mean) and **211%** (median): $1.66M vs. $0.53M on average. They are also larger and higher grade, so part of the premium is not the waterfront alone.
+- **Property age** has almost no relationship with price (−0.054), while renovated homes average **$760,379** vs. **$530,473**.
+- **High-value homes** (top 10%, at or above **$887,000**) cluster geographically; the top grid cell is near latitude 47.62, longitude −122.24 with a median price of about $2.1M.
+- **Outliers:** 705 properties are unusual by price per sq ft, and 678 are price outliers within their grade.
 
 ---
 
 ## Limitations
 
-- **Correlation is not causation.** For example, waterfront homes are also larger and higher grade, so the raw premium overstates the effect of the waterfront alone.
-- **Grade and condition categories are uneven.** Some grades have very few sales (grade 3 has one record), so their statistics are unreliable.
-- **Grid clusters are approximate** and depend on the chosen grid size.
-- **Single time window.** Results reflect 2014–2015 market conditions.
-- **Univariate and pairwise views.** Most analyses look at one or two variables at a time, so interactions between variables are not modeled.
+- Results are **observed associations**, not causal effects.
+- Some grade and condition groups are very small (grade 3 has one sale), so their statistics are unreliable.
+- Grid clusters are approximate and depend on the chosen grid size.
+- Most analyses look at one or two variables at a time and do not model interactions.
 
 ---
 
-## Possible Next Steps
+## Possible Extensions
 
-- Fit a multivariable regression (for example, on log-transformed price) to isolate each factor's effect.
-- Try tree-based models such as Random Forest or Gradient Boosting for price prediction.
-- Replace the grid method with real clustering (K-Means, DBSCAN) or a folium/geopandas map.
+- Fit a multivariable regression (for example on log-transformed price) to isolate each factor's effect.
+- Try Random Forest or Gradient Boosting models for price prediction.
+- Replace the grid method with K-Means or DBSCAN, or plot the results on an interactive map.
 - Add `zipcode`-level analysis and use `view`, `floors`, and lot size, which are currently unused.
-- Remove the duplicate regression plot cell (Section 2 draws the same plot twice; the second is titled "Nonlinear Relationship" and could instead use a log scale or a polynomial fit).
+- Remove the duplicate regression plot in Section 2, or use a log scale or polynomial fit for the nonlinear check.
